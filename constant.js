@@ -1,0 +1,1 @@
+export const MONGO_URL='mongodb+srv://AlokDubey:Alokdubey%401996@cluster0.jhfg5qp.mongodb.net/?retryWrites=true&w=majority';

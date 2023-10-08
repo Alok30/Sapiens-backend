@@ -1,0 +1,19 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# Dependency directories
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+.pnpm-workspace/
+
+# dotenv environment variables file (if you use it)
+.env
+
+# VS Code settings (if you use VS Code)
+.vscode/
