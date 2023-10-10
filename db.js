@@ -1,11 +1,7 @@
-// db.js
 
 const mongoose = require('mongoose');
 
-//uri to connect mongo atlas
-const MONGO_URL = 'mongodb+srv://AlokDubey:Alokdubey%401996@cluster0.jhfg5qp.mongodb.net/?retryWrites=true&w=majority';
-
-mongoose.connect(MONGO_URL, {
+mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });

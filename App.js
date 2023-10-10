@@ -5,13 +5,12 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+require('dotenv').config()
 const cors = require("cors");
 const app = express();
 const db = require("./db");
-// mongoose.connect('mongodb://localhost/userInfo', {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// });
+
+
 
 const userSchema = new mongoose.Schema({
   username: String,
@@ -23,37 +22,30 @@ const User = mongoose.model("User", userSchema);
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-// Set up CORS with options
 const corsOptions = {
   origin: true,
-  credentials: true, // Allow credentials (cookies)
+  credentials: true,
   exposedHeaders: "*",
 };
-//   cors({credentials: true, origin: true, exposedHeaders: '*'})
 
 app.use(cors(corsOptions));
-// Handle preflight requests for all routes
 app.options("*", cors(corsOptions));
 
-// Secret key for JWT
 const secretKey = "wycMIFSgXnYp47ERBdTpeIWOFGGrpdOZ";
 
-// Middleware for JWT token verification
+
 const verifyToken = (req, res, next) => {
   const token = req.cookies.jwt;
-  console.log(req, "req");
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-
-  jwt.verify(token, secretKey, (err, decodedToken) => {
+  jwt.verify(token.replace("Bearer ", ""), secretKey, (err, decodedToken) => {
+    console.log(err,'err')
     if (err) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-
-    // If token is valid, store the decoded token in the request object
     req.user = decodedToken;
-    next(); // Continue to the next middleware or route handler
+    next();
   });
 };
 
@@ -80,23 +72,32 @@ app.post("/signin", async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    // Generate JWT token
     
-    const token = jwt.sign({ username: user.username }, secretKey);
-    // Set the JWT token in an HttpOnly cookie
-    res.cookie("jwt", token, {
-      httpOnly: true,
-      secure: true, // Set to true for HTTPS
-      sameSite: "none", // Adjust this based on your requirements
+    const token = jwt.sign({ username: user.username }, secretKey, {
+      expiresIn: '1h',
     });
-    res.status(200).json({ message: "Sign-in successful", user,token });
+    
+    const bearerToken = `Bearer ${token}`; 
+    res.cookie("jwt", bearerToken, {
+      httpOnly: true,
+      secure: true, 
+      sameSite: "none", 
+      maxAge: 3600000,
+    });
+    res.status(200).json({ message: "Sign-in successful", user,bearerToken });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal server error" });
   }
 });
 
-// Logout route (clears the JWT cookie)
+app.get("/check-auth", verifyToken, async(req, res) => {
+  const { username } = req.user;
+  const user = await User.findOne({ username });
+  const { colorPreference } = user;
+  res.status(200).json({ message: "Authenticated",username,colorPreference });
+});
+
 app.get("/logout", (req, res) => {
   res.clearCookie("jwt");
   res.status(200).json({ message: "Logout successful" });
@@ -106,7 +107,6 @@ app.put("/preferences/:username", verifyToken, async (req, res) => {
   const username = req.params.username;
   const { colorPreference } = req.body;
 
-  // Ensure the user making the request matches the requested username
   if (username !== req.user.username) {
     return res.status(403).json({ message: "Forbidden" });
   }
