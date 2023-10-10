@@ -33,7 +33,7 @@ app.options("*", cors(corsOptions));
 
 const secretKey = "wycMIFSgXnYp47ERBdTpeIWOFGGrpdOZ";
 
-
+console.log(process.env.MONGO_URL,'procss')
 const verifyToken = (req, res, next) => {
   const token = req.cookies.jwt;
   if (!token) {
