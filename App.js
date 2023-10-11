@@ -33,7 +33,6 @@ app.options("*", cors(corsOptions));
 
 const secretKey = "wycMIFSgXnYp47ERBdTpeIWOFGGrpdOZ";
 
-console.log(process.env.MONGO_URL,'procss')
 const verifyToken = (req, res, next) => {
   const token = req.cookies.jwt;
   if (!token) {
@@ -79,10 +78,10 @@ app.post("/signin", async (req, res) => {
     
     const bearerToken = `Bearer ${token}`; 
     res.cookie("jwt", bearerToken, {
-      httpOnly: true,
+      httpOnly: false,
       secure: true, 
       sameSite: "none", 
-      maxAge: 3600000,
+      maxAge: 360000,
     });
     res.status(200).json({ message: "Sign-in successful", user,bearerToken });
   } catch (err) {
@@ -99,7 +98,11 @@ app.get("/check-auth", verifyToken, async(req, res) => {
 });
 
 app.get("/logout", (req, res) => {
-  res.clearCookie("jwt");
+  res.clearCookie("jwt", {
+    httpOnly: false,
+    secure: true,
+    sameSite: 'none',
+  });
   res.status(200).json({ message: "Logout successful" });
 });
 
